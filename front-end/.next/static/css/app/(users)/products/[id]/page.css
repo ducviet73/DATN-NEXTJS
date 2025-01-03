@@ -1,0 +1,149 @@
+/*!*********************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[3]!./src/app/(users)/products/detail.css ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************/
+.container-detail-all {
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.detail_temple_1 {
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+}
+.detail_content_product_mota span {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+  display: block;
+  word-wrap: break-word;
+}
+
+.detail_temple_2 {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    height: 350px; /* Chiều cao cố định */
+    overflow: hidden;
+}
+
+.detail_temple_2_img_main img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Giữ tỉ lệ hình ảnh */
+}
+
+.detail_temple_dieuhuong {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+}
+.detail_temple_dieuhuong i {
+  font-size: 2rem;
+    color: #555;
+    cursor: pointer;
+}
+
+.detail_temple_3 {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.detail_content_product_name h4 {
+  font-size: 1.5rem;
+  margin-bottom: 0.7rem;
+    text-align: center;
+}
+
+.detail_temple_cannang,
+.detail_temple_review,
+.detail_temple_price,
+.detail_temple_color {
+    margin-bottom: 1rem;
+}
+
+.detail_temple_cannang h4,
+.detail_temple_color h4,
+.detail_temple_price h4{
+    font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.temple_review_start i {
+    color: #ffc107;
+    font-size: 1rem;
+}
+
+.temple_price_two {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.temple_price_sale span {
+  font-size: 1.4rem;
+  color: #e44d26;
+}
+
+.temple_price_giagoc del {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.thanhtoan-4-1 {
+    margin: 1rem 0;
+}
+.thanhtoan-4-1 input {
+    border: 1px solid #ddd;
+    padding: 0.8rem 1rem;
+    border-radius: 0.3rem;
+    width: 100px;
+    text-align: center;
+}
+.detail_temple_btn_all {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.detail_temple_btn_all button{
+    padding: 0.8rem 1rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.3rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.detail_addtocart {
+    background-color: #4caf50;
+    color: white;
+    flex-grow: 1;
+}
+.detail_addtocart:hover{
+    background-color: #367c39;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container-detail-all {
+        padding: 0.5rem;
+    }
+    .detail_temple_2 {
+      height: 300px; /* Chiều cao thấp hơn cho màn hình nhỏ */
+     }
+      .detail_content_product_mota span {
+        font-size: 0.9rem;
+    }
+}

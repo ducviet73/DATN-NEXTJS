@@ -1,0 +1,10 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(users)/category/[id]/page": "app/(users)/category/[id]/page.js",
+  "/(users)/checkout/page": "app/(users)/checkout/page.js",
+  "/(users)/orders/page": "app/(users)/orders/page.js",
+  "/(users)/page": "app/(users)/page.js",
+  "/(users)/products/[id]/page": "app/(users)/products/[id]/page.js",
+  "/(users)/about/page": "app/(users)/about/page.js",
+  "/(users)/contact/page": "app/(users)/contact/page.js"
+}

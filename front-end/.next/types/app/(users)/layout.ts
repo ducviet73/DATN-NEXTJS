@@ -1,4 +1,4 @@
-// File: C:\Users\HVC\Downloads\duan\front-end\src\app\(users)\layout.js
+// File: C:\DATN-NEXTJS\front-end\src\app\(users)\layout.js
 import * as entry from '../../../../src/app/(users)/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -23,7 +23,13 @@ export default function Leftbar() {
                 <li>
                     <Link href="/admin/product" className={`nav-link rounded-0 py-2 px-3 ${pathname == "/admin/product" ? "bg-white text-black" : "text-white"} d-flex align-items-center`}>
                         <i className="fas fa-boxes fa-fw me-2"></i>
-                        <span className="d-none d-sm-inline-block">SẢn Phẩm</span>
+                        <span className="d-none d-sm-inline-block">Sản Phẩm</span>
+                    </Link>
+                </li>
+                <li>
+                    <Link href="/admin/vouchers" className={`nav-link rounded-0 py-2 px-3 ${pathname == "/admin/vouchers" ? "bg-white text-black" : "text-white"} d-flex align-items-center`}>
+                        <i className="fas fa-boxes fa-fw me-2"></i>
+                        <span className="d-none d-sm-inline-block">Vouchers</span>
                     </Link>
                 </li>
                 <li>

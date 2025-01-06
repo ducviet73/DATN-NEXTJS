@@ -24,7 +24,8 @@ const CheckoutPage = () => {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [voucherCode, setVoucherCode] = useState('');
+    const [discountAmount, setDiscountAmount] = useState(0); // State for discount amount
     const total = useMemo(() => 
         cartItems.reduce((total, item) => total + item.price * item.quantity, 0), 
         [cartItems]
@@ -60,6 +61,45 @@ const CheckoutPage = () => {
         setSelectedWard('');
     };
 
+    // voucher
+    const applyVoucher = async () => {
+        if (!voucherCode) {
+            setErrorMessage('Please enter a voucher code.');
+            return;
+        }
+
+        try {
+            const response = await axios.get(`http://localhost:3000/api/vouchers/${voucherCode}`);
+            if (response.data) {
+                 if (response.data.is_active === false) {
+                        setErrorMessage("Voucher has expired.");
+                         return;
+                     }
+                setErrorMessage('');
+                console.log("voucher info: ", response.data);
+
+                if (response.data.min_order_amount > total) {
+                        setErrorMessage(`Voucher requires a minimum purchase of ${response.data.min_order_amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}`);
+                         return;
+                 }
+                 let discountValue;
+                if (response.data.discount_type === 'percentage') {
+                     discountValue = (total * response.data.discount_value) / 100;
+
+                } else if (response.data.discount_type === 'fixed amount') {
+                     discountValue =  response.data.discount_value;
+                 }
+                  setDiscountAmount(discountValue);
+                console.log("discountAmount after apply voucher: ", discountAmount);
+
+            }
+        } catch (error) {
+             console.error('Error applying voucher:', error);
+            setErrorMessage('Invalid voucher code.');
+        }
+    };
+
+
     const handleCheckout = async () => {
         if (!customerName || !customerEmail || !paymentMethod || !selectedCity || !selectedDistrict || !selectedWard) {
             setErrorMessage('Please provide all required information.');
@@ -68,10 +108,11 @@ const CheckoutPage = () => {
 
         setErrorMessage('');
         setIsSubmitting(true);
-
+   console.log("total before reduce: ", total);
+    console.log("discountAmount before reduce: ", discountAmount);
         const orderDetails = {
             userId: user?._id,
-            totalAmount: total,
+            totalAmount: total - discountAmount, // Apply discount
             shippingAddress: {
                 street: shippingAddress,
                 ward: wards.find(ward => ward.Id === selectedWard)?.Name || '',
@@ -85,24 +126,28 @@ const CheckoutPage = () => {
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price
-            }))
+            })),
+            voucher_code: voucherCode
         };
-
+         console.log("order detail before fetch: ", orderDetails);
+    
         try {
-            const response = await fetch('https://star-backend-z1cm.onrender.com/orders', {
+            const response = await fetch(`http://localhost:3000/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(orderDetails)
             });
-
+            console.log("Full response: ", response); // ADDED LOG
+    
             if (response.ok) {
                 dispatch(clearCart());
                 alert("Cảm ơn bạn đã đặt hàng! Chúng tôi đã gửi một email xác nhận tới địa chỉ của bạn cùng với hóa đơn..");
                 router.push('/orders');
             } else {
                 const data = await response.json();
+                 console.error("Response data:", data);
                 setErrorMessage(data.error || 'Failed to submit order');
             }
         } catch (error) {
@@ -145,6 +190,21 @@ const CheckoutPage = () => {
                             onChange={(e) => setCustomerEmail(e.target.value)}
                             required
                         />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="voucherCode">Mã giảm giá</label>
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="voucherCode"
+                                value={voucherCode}
+                                onChange={(e) => setVoucherCode(e.target.value)}
+                            />
+                            <div className="input-group-append">
+                                <button className="btn btn-outline-secondary" type="button" onClick={applyVoucher}>Áp dụng</button>
+                            </div>
+                        </div>
                     </div>
                     <div className="form-group">
                         <label htmlFor="shippingAddress">Địa chỉ cụ thể</label>
@@ -230,8 +290,7 @@ const CheckoutPage = () => {
                                      <div className="row">
                                          <div className="col-4">
                                         <img
-                                        src={item.image.startsWith('http') ? item.image : `https://star-backend-z1cm.onrender.com/${item.image}`}
-                                        alt={item.image}
+                                        src={item.image} alt={item.image}
                                             style={{ height: "250px", width: "100%" }}
                                          />                                        </div>
                                          <div className="col-8">
@@ -242,11 +301,22 @@ const CheckoutPage = () => {
                                      </div>
                                  </div>
                              ))}
-                         </div>                         <div className="total-amount">
-                            <h4 style={{marginTop: "10px"}}>
-                                Tổng Tiền: {total.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })} 
-                           </h4>
-                         </div> 
+                         </div>                         
+                         <div className="total-amount">
+                         <h4 style={{marginTop: "10px"}}>
+                                Tổng Tiền: {total.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                            </h4>
+                            {discountAmount > 0 && (
+                            <h4 style={{marginTop: "10px", color: "green"}}>
+                             Giảm giá: {discountAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                             </h4>
+                                )}
+                              {discountAmount > 0 && (
+                            <h4 style={{marginTop: "10px", color: "green"}}>
+                              Tổng tiền sau giảm giá: {(total - discountAmount).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                            </h4>
+                            )}
+                         </div>
                 </div>
             </div>
         </div>

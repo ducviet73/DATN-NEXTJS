@@ -58,3 +58,17 @@ const voucherController = {
 };
 
 module.exports = voucherController;
+
+
+  // getVoucherById: async (req, res) => {
+  //   try {
+  //     const { id } = req.params;
+  //     const voucher = await Voucher.findById(id);
+  //     if (!voucher) {
+  //       return res.status(404).json({ message: 'Voucher not found' });
+  //     }
+  //     res.status(200).json(voucher);
+  //   } catch (error) {
+  //     res.status(500).json({ message: error.message });
+  //   }
+  // },

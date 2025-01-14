@@ -129,7 +129,7 @@ export default function Product() {
                   <tr key={_id}>
                     <td style={{ width: "64px" }}>
                       <img
-                        src={`http://localhost:3000/img/${image}?t=${new Date().getTime()}`}
+                        src={`http://localhost:3000/${image}?t=${new Date().getTime()}`}
                         alt={name}
                         className="img-thumbnail"
                       />

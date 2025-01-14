@@ -5,6 +5,7 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const User = require('../model/user.Model');
+const { format } = require('date-fns');
 
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
@@ -26,43 +27,44 @@ ensureDirectoryExists(invoicesDir);
 // Create a new order and generate invoice
 exports.createOrder = async (req, res) => {
     try {
-      const orderDetails = req.body;
-      let discountAmount = 0;
-      let voucherId = null;
-    if (orderDetails.voucher_code) {
-        const voucher = await Voucher.findOne({ voucher_code: orderDetails.voucher_code, is_active: true });
-          if (!voucher) {
-            return res.status(404).json({ message: 'Voucher is not valid' });
-        }
-        if (voucher.min_order_amount > orderDetails.totalAmount) {
-          return res.status(400).json({
-            message: `Order does not meet minimum amount ${voucher.min_order_amount}`,
-          });
-        }
-           if (voucher.max_uses && voucher.uses_count >= voucher.max_uses) {
-               return res.status(400).json({message: 'Voucher has reached max uses'})
-           }
-
-        if (voucher.end_date && voucher.end_date < new Date()) {
-          return res.status(400).json({ message: 'Voucher is expired' });
-        }
-        voucherId = voucher._id;
-
+        const orderDetails = req.body;
+        let discountAmount = 0;
+        let voucherId = null;
+      if (orderDetails.voucher_code) {
+            const voucher = await Voucher.findOne({ voucher_code: orderDetails.voucher_code, is_active: true });
+            if (!voucher) {
+                return res.status(400).json({ message: 'Voucher is not valid' });
+            }
+            if (voucher.min_order_amount > orderDetails.totalAmount) {
+                return res.status(400).json({
+                  message: `Order does not meet minimum amount ${voucher.min_order_amount}`,
+                });
+            }
+            if (voucher.max_uses && voucher.uses_count >= voucher.max_uses) {
+                 return res.status(400).json({message: 'Voucher has reached max uses'})
+             }
+  
+             if (voucher.end_date && voucher.end_date < new Date()) {
+               return res.status(400).json({ message: 'Voucher is expired' });
+             }
+          voucherId = voucher._id;
         if (voucher.discount_type === 'percentage') {
-          discountAmount = (orderDetails.totalAmount * voucher.discount_value) / 100;
-        } else if (voucher.discount_type === 'fixed amount') {
-          discountAmount = voucher.discount_value;
-        }
-
-           voucher.uses_count += 1;
-           await voucher.save();
+            discountAmount = (orderDetails.totalAmount * voucher.discount_value) / 100;
+          } else if (voucher.discount_type === 'fixed amount') {
+            discountAmount = voucher.discount_value;
+          }
+  
+        voucher.uses_count += 1;
+        await voucher.save();
       }
         const order = new Order({...orderDetails, discountAmount, voucher_id: voucherId});
         await order.save();
 
-
         // Create invoice PDF
         const fontPath = path.join(__dirname, '../fonts/Roboto-Regular.ttf');
+        if (!fs.existsSync(fontPath)) {
+            return res.status(500).json({ error: "Font file not found" });
+        }
         const doc = new PDFDocument({ margin: 50 });
         const invoicePath = path.join(invoicesDir, `invoice-${order._id}.pdf`);
         const writeStream = fs.createWriteStream(invoicePath);
@@ -89,13 +91,13 @@ exports.createOrder = async (req, res) => {
         });
         doc.end();
 
-
         writeStream.on('finish', async () => {
             try {
                 const user = await User.findById(orderDetails.userId);
                 if (!user) {
                     return res.status(404).json({ error: 'Không tìm thấy người dùng' });
                 }
+
                 const mailOptions = {
                     from: "thienvvps34113@fpt.edu.vn",
                     to: user.email,
@@ -108,18 +110,18 @@ exports.createOrder = async (req, res) => {
                         },
                     ],
                 };
-                await transporter.sendMail(mailOptions);
-                res.status(201).json({ message: 'Đơn hàng đã được tạo, email đã được gửi!', order });
+                 await transporter.sendMail(mailOptions);
+                 res.status(201).json({ message: 'Đơn hàng đã được tạo, email đã được gửi!', order });
             } catch (emailError) {
                 console.error('Lỗi gửi email:', emailError);
                 res.status(500).json({ error: 'Gửi email thất bại' });
             }
         });
 
-        writeStream.on('error', (err) => {
-            console.error('Lỗi ghi PDF:', err);
-            res.status(500).json({ error: 'Tạo hóa đơn PDF thất bại' });
-        });
+         writeStream.on('error', (err) => {
+             console.error('Lỗi ghi PDF:', err);
+             return res.status(500).json({ error: 'Tạo hóa đơn PDF thất bại' });
+         });
     } catch (error) {
         console.error('Lỗi tạo đơn hàng:', error);
         res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
@@ -263,17 +265,17 @@ exports.getOrdersByStatus = async (req, res) => {
     }
 };
 exports.getOrdersByDate = async (req, res) => {
-    const { date } = req.params;
+  const { date } = req.params;
     try {
-        const orders = await Order.find({
-            createdAt: {
-                $gte: new Date(date),
-                $lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1))
-            }
-        });
-        res.json(orders);
+         const orders = await Order.find({
+           createdAt: {
+             $gte: new Date(date),
+             $lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)),
+           },
+         });
+      res.json(orders);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching orders by date', error });
+      res.status(500).json({ message: "Error fetching orders by date", error });
     }
 };
 exports.getOrderCount = async (req, res) => {
@@ -282,5 +284,41 @@ exports.getOrderCount = async (req, res) => {
         res.json({ count });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching users count', error });
+    }
+};
+
+exports.getOrderIncomes = async (req, res) => {
+    try {
+        const { year, month } = req.query;
+
+        const matchStage = {
+            $match: {
+                status: 'delivered',
+                ...(year && { createdAt: { $gte: new Date(`${year}-01-01`), $lt: new Date(`${+year + 1}-01-01`) } }),
+                ...(month && year && { createdAt: { $gte: new Date(`${year}-${month}-01`), $lt: new Date(`${year}-${+month + 1}-01`) } })
+            }
+        };
+            
+         console.log("Match Stage:", JSON.stringify(matchStage, null, 2));
+
+        const groupStage = {
+            $group: {
+                _id: {
+                    year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" },
+                    day: { $dayOfMonth: "$createdAt" }
+                },
+                total: { $sum: "$totalAmount" }
+            }
+        };
+
+        const sortStage = { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } };
+
+        const incomeStatistics = await Order.aggregate([matchStage, groupStage, sortStage]);
+
+        res.json(incomeStatistics);
+    } catch (error) {
+        console.error('Error fetching income statistics:', error); // In ra lỗi chi tiết
+        res.status(500).json({ message: 'Error fetching income statistics', error });
     }
 };

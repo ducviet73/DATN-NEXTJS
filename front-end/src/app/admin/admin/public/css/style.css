@@ -1,0 +1,47 @@
+[data-bs-theme="dark"] .nav-pills .nav-link.active,[data-bs-theme="dark"] .nav-pills .show>.nav-link{
+  background-color: var(--bs-white);
+  color: var(--bs-primary);
+}
+.thongbao-1{
+position: relative;
+
+}
+.thongbao-1::after{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  content: attr(data-text);
+  width: 20px;
+  height: 20px;
+  top: -10px;
+  right: -10px;
+  background-color: red;
+ border-radius: 50%;
+  font-size: 10px;
+ 
+  }
+  @keyframes bu{
+    from{
+      transform: scale(1);
+    }
+    to {
+      transform: scale(3);
+      opacity: 0;
+    }
+
+  }
+  .thongbao-1::before{
+    display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  content: "";
+  width: 20px;
+  height: 20px;
+  top: -10px;
+  right: -10px;
+  background-color:red;
+ border-radius: 50%;
+ animation: bu 1s linear infinite;
+  }

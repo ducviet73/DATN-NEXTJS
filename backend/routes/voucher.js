@@ -9,3 +9,5 @@ router.put('/:id', voucherController.updateVoucher);
 router.delete('/:id', voucherController.deleteVoucher);
 
 module.exports = router;
+
+// router.get('/:id', voucherController.getVoucherById); 

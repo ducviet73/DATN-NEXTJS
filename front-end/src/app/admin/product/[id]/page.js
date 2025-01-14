@@ -29,11 +29,6 @@ const validationSchema = Yup.object({
         .required('Tên là bắt buộc'),
     category: Yup.string()
         .required('Danh mục là bắt buộc'),
-    sale: Yup.number()
-        .min(0, 'Khuyến mãi phải ít nhất là 0')
-        .max(100, 'Khuyến mãi không được vượt quá 100')
-        .required('Khuyến mãi là bắt buộc')
-        .typeError('Khuyến mãi phải là số'),
     description: Yup.string()
         .matches(/^[\w\s.,!?]+$/, 'Mô tả chỉ có thể chứa chữ cái, số và dấu câu thông thường'),
     price: Yup.number()
@@ -71,7 +66,6 @@ export default function ProductEdit({ params }) {
         initialValues: {
             name: product ? product.name : '',
             category: product ? product.category : '',
-            sale: product ? product.sale : '',
             description: product ? product.description : '',
             price: product ? product.price : '',
             content: product ? product.content : '',
@@ -191,7 +185,6 @@ export default function ProductEdit({ params }) {
                         </div>
                     </div>
                     <div className="row">
-                        <h6 className="pb-3 border-bottom">Giá</h6>
                         <div className="col mb-3">
                             <label htmlFor="price" className="form-label">Giá *</label>
                             <input
@@ -205,19 +198,7 @@ export default function ProductEdit({ params }) {
                                 <div className="text-danger">{formik.errors.price}</div>
                             )}
                         </div>
-                        <div className="col mb-3">
-                            <label htmlFor="sale" className="form-label">Giảm giá</label>
-                            <input
-                                type="number"
-                                className="form-control rounded-0"
-                                id="sale"
-                                min="0"
-                                {...formik.getFieldProps('sale')}
-                            />
-                            {formik.touched.sale && formik.errors.sale && (
-                                <div className="text-danger">{formik.errors.sale}</div>
-                            )}
-                        </div>
+
                         <div className="col mb-3">
                             <label htmlFor="rating" className="form-label">Đánh giá</label>
                             <input

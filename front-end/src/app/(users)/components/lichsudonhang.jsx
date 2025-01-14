@@ -10,7 +10,7 @@ const OrderHistory = ({ userId }) => {
   useEffect(() => {
     // Fetch orders from the API
     axios
-      .get(`https://star-backend-z1cm.onrender.com/orders/lichsu/${userId}`)
+      .get(`http://localhost:3000/orders/history/${userId}`)
       .then((response) => {
         setOrders(response.data);  // Assuming the API returns an array of orders
         setLoading(false);
@@ -28,7 +28,7 @@ const OrderHistory = ({ userId }) => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-        const response = await fetch(`https://star-backend-z1cm.onrender.com/orders/status/${orderId}`, {
+        const response = await fetch(`http://localhost:3000/orders/status/${orderId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

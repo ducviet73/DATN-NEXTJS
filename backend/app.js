@@ -8,10 +8,10 @@ const connectDb = require('./data/db');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var productRouter = require('./routes/products');
-var categoryRouter=require('./routes/category');
+var categoryRouter = require('./routes/category');
 var orderRouter = require('./routes/order');
-var voucherRoutes = require('./routes/voucher')
-
+var voucherRoutes = require('./routes/voucher');
+var reviewRoutes = require('./routes/review');
 
 var app = express();
 connectDb();
@@ -28,18 +28,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', productRouter);
 app.use('/users', usersRouter);
-app.use('/categories',categoryRouter)
-app.use('/orders',orderRouter)
+app.use('/categories', categoryRouter);
+app.use('/orders', orderRouter);
 app.use('/api/vouchers', voucherRoutes);
-
+app.use('/api/reviews', reviewRoutes);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

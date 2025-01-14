@@ -45,7 +45,7 @@ const QuanLyDonHangAdmin = () => {
   // Cập nhật trạng thái đơn hàng
   const handleThayDoiTrangThai = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:3000/orders/${orderId}/status`, {
+      const response = await fetch(`http://localhost:3000/orders/status/${orderId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -61,6 +61,18 @@ const QuanLyDonHangAdmin = () => {
       setDonHangs(donHangs.map((order) =>
         order._id === orderId ? { ...order, status: newStatus } : order
       ));
+          
+       // Gọi lại hàm lấy tổng thu nhập
+        const layThuNhapTong = async () => {
+            try {
+                const response = await axios.get("http://localhost:3000/orders/incomes/total");
+                setThuNhapTong(response.data.total);
+            } catch (error) {
+                console.error("Lỗi khi lấy thu nhập tổng:", error);
+                setLoi("Không thể lấy thu nhập tổng");
+            }
+        };
+        layThuNhapTong();
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
       setLoi(`Không thể cập nhật trạng thái: ${error.message}`);
@@ -76,6 +88,17 @@ const QuanLyDonHangAdmin = () => {
         if (donHangChon && donHangChon._id === orderId) {
           setDonHangChon(null);
         }
+        // Gọi lại hàm lấy tổng thu nhập
+        const layThuNhapTong = async () => {
+            try {
+                const response = await axios.get("http://localhost:3000/orders/incomes/total");
+                setThuNhapTong(response.data.total);
+            } catch (error) {
+                console.error("Lỗi khi lấy thu nhập tổng:", error);
+                setLoi("Không thể lấy thu nhập tổng");
+            }
+        };
+        layThuNhapTong();
       } catch (error) {
         console.error("Lỗi khi xóa đơn hàng:", error);
         setLoi("Không thể xóa đơn hàng");
@@ -143,11 +166,11 @@ const QuanLyDonHangAdmin = () => {
               onChange={(e) => setTrangThai(e.target.value)}
             >
               <option value="">Chọn Trạng Thái</option>
-              <option value="pending">Đang Chờ</option>
-              <option value="processing">Đang Xử Lý</option>
-              <option value="shipped">Đã Gửi</option>
-              <option value="delivered">Đã Giao</option>
-              <option value="cancelled">Đã Hủy</option>
+              <option value="Chờ xử lý">Đang Chờ</option>
+              <option value="Đang xử lý">Đang Xử Lý</option>
+              <option value="Đã giao hàng">Đã Gửi</option>
+              <option value="Đã nhận hàng">Đã Giao</option>
+              <option value="Đã hủy">Đã Hủy</option>
             </select>
             <button className="btn btn-primary mt-2" onClick={handleLocTheoTrangThai}>
               Lọc theo Trạng Thái
@@ -198,12 +221,12 @@ const QuanLyDonHangAdmin = () => {
                     value={order.status}
                     onChange={(e) => handleThayDoiTrangThai(order._id, e.target.value)}
                   >
-                    <option value="">Chọn Trạng Thái</option>
-                    <option value="pending">Đang Chờ</option>
-                    <option value="processing">Đang Xử Lý</option>
-                    <option value="shipped">Đã Gửi</option>
-                    <option value="delivered">Đã Giao</option>
-                    <option value="cancelled">Đã Hủy</option>
+                     <option value="">Chọn Trạng Thái</option>
+                     <option value="Chờ xử lý">Đang Chờ</option>
+                      <option value="Đang xử lý">Đang Xử Lý</option>
+                      <option value="Đã giao hàng">Đã Gửi</option>
+                      <option value="Đã nhận hàng">Đã Giao</option>
+                      <option value="Đã hủy">Đã Hủy</option>
                   </select>
                 </td>
                 <td>

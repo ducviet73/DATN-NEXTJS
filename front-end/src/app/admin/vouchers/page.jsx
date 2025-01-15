@@ -75,6 +75,16 @@ const VoucherListWithActions = () => {
             console.error('Error deleting voucher:', error);
         }
     }
+    const translateDiscountType = (type) => {
+         switch (type) {
+              case "percentage":
+                  return "Phần trăm giảm giá";
+              case "fixed amount":
+                 return "Số tiền cố định";
+               default:
+                   return type;
+        }
+     };
 
 if (loading) return <p>Loading...</p>;
 
@@ -135,7 +145,7 @@ return (
                        <tr key={voucher._id} className="text-center">
                             <td>{i + 1}</td>
                             <td>{voucher.voucher_code}</td>
-                            <td>{voucher.discount_type}</td>
+                           <td>{translateDiscountType(voucher.discount_type)}</td>
                             <td>{voucher.discount_value}</td>
                             <td>{voucher.min_order_amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
                             <td>{new Date(voucher.start_date).toLocaleDateString('vi-VN')}</td>

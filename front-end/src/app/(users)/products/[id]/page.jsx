@@ -42,18 +42,18 @@ export default function Detail({ params }) {
     if (reviewsError) return <strong>Error loading reviews</strong>;
     if (reviewsLoading) return <div className="loader">Loading reviews...</div>;
 
-    const getActivePromotionForProduct = () => {
-        return promotionalProductData?.find(promo => promo.id_product?._id === data._id);
-    };
-    const activePromotion = getActivePromotionForProduct();
-    const promotion = activePromotion?.id_promotional
+    // const getActivePromotionForProduct = () => {
+    //     return promotionalProductData?.find(promo => promo.id_product?._id === data._id);
+    // };
+    // const activePromotion = getActivePromotionForProduct();
+    // const promotion = activePromotion?.id_promotional
 
     let discountedPrice = data.price;
     let discountPercentage = 0;
-    if (promotion) {
-        discountPercentage = promotion.percent_discount;
-        discountedPrice = data.price * (1 - discountPercentage / 100);
-    }
+    // if (promotion) {
+    //     discountPercentage = promotion.percent_discount;
+    //     discountedPrice = data.price * (1 - discountPercentage / 100);
+    // }
     const formattedDiscountedPrice = discountedPrice.toLocaleString('vi-VN', {
         style: 'currency',
         currency: 'VND',

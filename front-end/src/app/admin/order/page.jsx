@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const QuanLyDonHangAdmin = () => {
   const [donHangs, setDonHangs] = useState([]);
@@ -41,43 +43,81 @@ const QuanLyDonHangAdmin = () => {
     layDonHangs();
     layThuNhapTong();
   }, []);
-
+    const translateStatus = (status) => {
+        switch (status) {
+            case "pending":
+                return "Đang Chờ";
+            // case "processing":
+            //     return "Đang Xử Lý";
+            case "shipped":
+                return "Đang Giao Hàng";
+            case "delivered":
+                return "Đã Giao Hàng Thành Công";
+            case "cancelled":
+                return "Đã Hủy";
+            default:
+                return status;
+        }
+    };
+    const translatePaymentMethod = (method) => {
+        if (method === "cash") {
+            return "Thanh toán khi nhận hàng";
+        }
+        return method;
+    }
+    const getAvailableStatuses = (currentStatus) => {
+        const validStatusTransitions = {
+            'pending': ['pending','shipped','delivered','cancelled'],
+            // 'processing': ['processing','shipped','delivered', 'cancelled'],
+            'shipped': ['shipped','delivered', 'cancelled'],
+            'delivered': [],
+            'cancelled': []
+        };
+        return validStatusTransitions[currentStatus] || [];
+    };
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return format(date, "HH:mm:ss dd/MM/yyyy ", { locale: vi });
+    }
   // Cập nhật trạng thái đơn hàng
   const handleThayDoiTrangThai = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:3000/orders/status/${orderId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+        const response = await fetch(`http://localhost:3000/orders/status/${orderId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: newStatus }),
+        });
+    
+         if (!response.ok) {
+                const errorData = await response.json(); // Đọc response một lần để lấy lỗi
+                setLoi(errorData.message || `Phản hồi mạng không hợp lệ: ${response.status}`);
+                 return;
+         }
 
-      if (!response.ok) {
-        throw new Error(`Phản hồi mạng không hợp lệ: ${response.status}`);
-      }
-
-      const updatedOrder = await response.json();
-      setDonHangs(donHangs.map((order) =>
-        order._id === orderId ? { ...order, status: newStatus } : order
-      ));
-          
-       // Gọi lại hàm lấy tổng thu nhập
-        const layThuNhapTong = async () => {
-            try {
-                const response = await axios.get("http://localhost:3000/orders/incomes/total");
-                setThuNhapTong(response.data.total);
-            } catch (error) {
-                console.error("Lỗi khi lấy thu nhập tổng:", error);
-                setLoi("Không thể lấy thu nhập tổng");
-            }
-        };
-        layThuNhapTong();
+        const updatedOrder = await response.json(); // Đọc response một lần để lấy dữ liệu
+        setDonHangs(donHangs.map((order) =>
+            order._id === orderId ? { ...order, status: newStatus } : order
+        ));
+        setDonHangsLoc(donHangsLoc.map((order) =>
+            order._id === orderId ? { ...order, status: newStatus } : order
+         ));
+           const layThuNhapTong = async () => {
+                try {
+                  const response = await axios.get("http://localhost:3000/orders/incomes/total");
+                  setThuNhapTong(response.data.total);
+                } catch (error) {
+                  console.error("Lỗi khi lấy thu nhập tổng:", error);
+                  setLoi("Không thể lấy thu nhập tổng");
+                }
+              };
+              layThuNhapTong();
     } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
-      setLoi(`Không thể cập nhật trạng thái: ${error.message}`);
+        console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+        setLoi(`Không thể cập nhật trạng thái: ${error.message}`);
     }
-  };
+};
 
   // Xóa đơn hàng
   const handleXoaDonHang = async (orderId) => {
@@ -85,18 +125,18 @@ const QuanLyDonHangAdmin = () => {
       try {
         await axios.delete(`http://localhost:3000/orders/${orderId}`);
         setDonHangs(donHangs.filter((order) => order._id !== orderId));
+        setDonHangsLoc(donHangsLoc.filter((order) => order._id !== orderId));
         if (donHangChon && donHangChon._id === orderId) {
           setDonHangChon(null);
         }
-        // Gọi lại hàm lấy tổng thu nhập
         const layThuNhapTong = async () => {
-            try {
-                const response = await axios.get("http://localhost:3000/orders/incomes/total");
-                setThuNhapTong(response.data.total);
-            } catch (error) {
-                console.error("Lỗi khi lấy thu nhập tổng:", error);
-                setLoi("Không thể lấy thu nhập tổng");
-            }
+          try {
+            const response = await axios.get("http://localhost:3000/orders/incomes/total");
+            setThuNhapTong(response.data.total);
+          } catch (error) {
+            console.error("Lỗi khi lấy thu nhập tổng:", error);
+            setLoi("Không thể lấy thu nhập tổng");
+          }
         };
         layThuNhapTong();
       } catch (error) {
@@ -111,6 +151,7 @@ const QuanLyDonHangAdmin = () => {
     try {
       const response = await axios.get(`http://localhost:3000/orders/status/${trangThai}`);
       setDonHangsLoc(response.data);
+      setLoi("");
     } catch (error) {
       console.error("Lỗi khi lọc đơn hàng theo trạng thái:", error);
       setLoi("Không thể lọc đơn hàng theo trạng thái");
@@ -122,6 +163,7 @@ const QuanLyDonHangAdmin = () => {
     try {
       const response = await axios.get(`http://localhost:3000/orders/date/${ngay}`);
       setDonHangsLoc(response.data);
+      setLoi("");
     } catch (error) {
       console.error("Lỗi khi lọc đơn hàng theo ngày:", error);
       setLoi("Không thể lọc đơn hàng theo ngày");
@@ -165,12 +207,12 @@ const QuanLyDonHangAdmin = () => {
               value={trangThai}
               onChange={(e) => setTrangThai(e.target.value)}
             >
-              <option value="">Chọn Trạng Thái</option>
-              <option value="Chờ xử lý">Đang Chờ</option>
-              <option value="Đang xử lý">Đang Xử Lý</option>
-              <option value="Đã giao hàng">Đã Gửi</option>
-              <option value="Đã nhận hàng">Đã Giao</option>
-              <option value="Đã hủy">Đã Hủy</option>
+
+              <option value="pending">Đang Chờ</option>
+              <option value="processing">Đang Xử Lý</option>
+              <option value="shipped">Đã Gửi</option>
+              <option value="delivered">Đã Giao</option>
+              <option value="cancelled">Đã Hủy</option>
             </select>
             <button className="btn btn-primary mt-2" onClick={handleLocTheoTrangThai}>
               Lọc theo Trạng Thái
@@ -197,6 +239,7 @@ const QuanLyDonHangAdmin = () => {
             <tr>
               <th>ID</th>
               <th>Tổng Tiền</th>
+               <th>Thời Gian Tạo</th>
               <th>Địa Chỉ Giao Hàng</th>
               <th>Phương Thức Thanh Toán</th>
               <th>Trạng Thái</th>
@@ -209,24 +252,24 @@ const QuanLyDonHangAdmin = () => {
             {donHangsLoc.map((order) => (
               <tr key={order._id}>
                 <td>{order._id}</td>
-                <td>{order.totalAmount.toFixed(2)} đ</td>
+                <td>{order.totalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })} đ</td>
+                   <td>{formatDate(order.createdAt)}</td>
                 <td>
                   {order.shippingAddress.street}, {order.shippingAddress.ward}, {order.shippingAddress.district}, {order.shippingAddress.city}
                 </td>
-                <td>{order.paymentMethod}</td>
-                <td>{order.status}</td>
+                <td>{translatePaymentMethod(order.paymentMethod)}</td>
+                <td>{translateStatus(order.status)}</td>
                 <td>
                   <select
                     className="form-select"
                     value={order.status}
                     onChange={(e) => handleThayDoiTrangThai(order._id, e.target.value)}
                   >
-                     <option value="">Chọn Trạng Thái</option>
-                     <option value="Chờ xử lý">Đang Chờ</option>
-                      <option value="Đang xử lý">Đang Xử Lý</option>
-                      <option value="Đã giao hàng">Đã Gửi</option>
-                      <option value="Đã nhận hàng">Đã Giao</option>
-                      <option value="Đã hủy">Đã Hủy</option>
+                    {getAvailableStatuses(order.status).map((status) => (
+                      <option key={status} value={status}>
+                        {translateStatus(status)}
+                      </option>
+                    ))}
                   </select>
                 </td>
                 <td>

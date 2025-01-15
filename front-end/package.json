@@ -12,6 +12,7 @@
     "@reduxjs/toolkit": "^2.2.6",
     "axios": "^1.7.2",
     "chart.js": "^4.4.7",
+    "date-fns": "^4.1.0",
     "formik": "^2.4.6",
     "front-end": "file:",
     "next": "14.2.4",

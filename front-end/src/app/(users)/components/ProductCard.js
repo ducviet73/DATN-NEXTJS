@@ -57,7 +57,7 @@ function ProductCard({ data = [] }) {
             <div className="nav-product-item">
               <div className="nav-product-item-img">
                 <Link href={`/products/${_id}`}>
-                <img src={image} alt={name} style={{height:"363px"}}/>
+                <img src={image} alt={name} style={{height:"348px"}}/>
                 </Link>
               </div>
               <div className="nav-product-item-name">

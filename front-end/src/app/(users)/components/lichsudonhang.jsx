@@ -21,6 +21,36 @@ const OrderHistory = ({ userId }) => {
       });
   }, [userId]);
 
+    const translateStatus = (status) => {
+        switch (status) {
+            case "pending":
+                return "Đang Chờ";
+            // case "processing":
+            //     return "Đang Xử Lý";
+            case "shipped":
+                return "Đang Giao Hàng";
+            case "delivered":
+                return "Đã Giao Hàng Thành Công";
+            case "cancelled":
+                return "Đã Hủy";
+            default:
+                return status;
+        }
+    };
+
+     const translatePaymentMethod = (method) => {
+        switch (method) {
+            case "cash":
+                return "Thanh toán khi nhận hàng";
+            case "paypal":
+                return "PayPal";
+             case "momo":
+                  return "Momo";
+            default:
+                return method;
+        }
+    };
+
   // Function to handle showing order details
   const showOrderDetails = (order) => {
     setSelectedOrder(order);  // Lưu đơn hàng đã chọn vào state
@@ -84,7 +114,9 @@ const OrderHistory = ({ userId }) => {
             </ul>
 
             <h4>Trạng Thái</h4>
-            <p>{selectedOrder.status}</p>
+            <p>{translateStatus(selectedOrder.status)}</p>
+               <h4>Phương Thức Thanh Toán</h4>
+            <p>{translatePaymentMethod(selectedOrder.paymentMethod)}</p>
 
             {/* Only show the "Hủy Đơn Hàng" button if the status is "Chờ Xác Nhận" */}
             {selectedOrder.status === 'pending' && (
@@ -120,8 +152,8 @@ const OrderHistory = ({ userId }) => {
                 <td>{order._id}</td>
                 <td>{new Date(order.createdAt).toLocaleString()}</td>
                 <td>{order.totalAmount.toLocaleString('vi-VN')} đ</td>
-                <td>{order.paymentMethod}</td>
-                <td>{order.status}</td>
+                 <td>{translatePaymentMethod(order.paymentMethod)}</td>
+                <td>{translateStatus(order.status)}</td>
                 <td>
                   {order.shippingAddress.street}, {order.shippingAddress.ward}, {order.shippingAddress.district}, {order.shippingAddress.city}
                 </td>

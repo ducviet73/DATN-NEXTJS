@@ -20,6 +20,7 @@ const CheckoutPage = () => {
     const [selectedWard, setSelectedWard] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerEmail, setCustomerEmail] = useState('');
+     const [phoneNumber, setPhoneNumber] = useState('');
     const [shippingAddress, setShippingAddress] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -101,7 +102,7 @@ const CheckoutPage = () => {
 
 
     const handleCheckout = async () => {
-        if (!customerName || !customerEmail || !paymentMethod || !selectedCity || !selectedDistrict || !selectedWard) {
+        if (!customerName || !customerEmail || !paymentMethod || !selectedCity || !selectedDistrict || !selectedWard || !phoneNumber) {
             setErrorMessage('Please provide all required information.');
             return;
         }
@@ -113,6 +114,7 @@ const CheckoutPage = () => {
         const orderDetails = {
             userId: user?._id,
             totalAmount: total - discountAmount, // Apply discount
+             phoneNumber: phoneNumber,
             shippingAddress: {
                 street: shippingAddress,
                 ward: wards.find(ward => ward.Id === selectedWard)?.Name || '',
@@ -140,13 +142,16 @@ const CheckoutPage = () => {
                 body: JSON.stringify(orderDetails)
             });
             console.log("Full response: ", response); // ADDED LOG
-    
+            const data = await response.json();
             if (response.ok) {
                 dispatch(clearCart());
                 alert("Cảm ơn bạn đã đặt hàng! Chúng tôi đã gửi một email xác nhận tới địa chỉ của bạn cùng với hóa đơn..");
+                  if (data.updatedProducts) {
+                       console.log("Updated products: ", data.updatedProducts);
+                   }
                 router.push('/orders');
             } else {
-                const data = await response.json();
+                
                  console.error("Response data:", data);
                 setErrorMessage(data.error || 'Failed to submit order');
             }
@@ -190,7 +195,18 @@ const CheckoutPage = () => {
                             onChange={(e) => setCustomerEmail(e.target.value)}
                             required
                         />
-                    </div>
+                     </div>
+                     <div className="form-group">
+                        <label htmlFor="phoneNumber">Số điện thoại</label>
+                         <input
+                            type="tel"
+                            className="form-control"
+                            id="phoneNumber"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            required
+                          />
+                      </div>
                     <div className="form-group">
                         <label htmlFor="voucherCode">Mã giảm giá</label>
                         <div className="input-group">
@@ -270,8 +286,8 @@ const CheckoutPage = () => {
                             required
                         >
                             <option value="">Chọn phương thức thanh toán</option>
-                            <option value="cash">Tiền mặt</option>
-                            <option value="card">Chuyển khoản</option>
+                            <option value="cash">Thanh toán khi nhận hàng</option>
+                            {/* <option value="card">Chuyển khoản</option> */}
                         </select>
                     </div>
                     <button 

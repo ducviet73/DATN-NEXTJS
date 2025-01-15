@@ -25,43 +25,76 @@ ensureDirectoryExists(invoicesDir);
 
 
 // Create a new order and generate invoice
+const Product = require('../model/product.Model'); // Import Product model
+
+// Create a new order and generate invoice
 exports.createOrder = async (req, res) => {
-    try {
-        const orderDetails = req.body;
-        let discountAmount = 0;
-        let voucherId = null;
-      if (orderDetails.voucher_code) {
-            const voucher = await Voucher.findOne({ voucher_code: orderDetails.voucher_code, is_active: true });
-            if (!voucher) {
-                return res.status(400).json({ message: 'Voucher is not valid' });
-            }
-            if (voucher.min_order_amount > orderDetails.totalAmount) {
-                return res.status(400).json({
-                  message: `Order does not meet minimum amount ${voucher.min_order_amount}`,
-                });
-            }
-            if (voucher.max_uses && voucher.uses_count >= voucher.max_uses) {
-                 return res.status(400).json({message: 'Voucher has reached max uses'})
-             }
-  
-             if (voucher.end_date && voucher.end_date < new Date()) {
-               return res.status(400).json({ message: 'Voucher is expired' });
-             }
-          voucherId = voucher._id;
-        if (voucher.discount_type === 'percentage') {
-            discountAmount = (orderDetails.totalAmount * voucher.discount_value) / 100;
-          } else if (voucher.discount_type === 'fixed amount') {
-            discountAmount = voucher.discount_value;
-          }
-  
-        voucher.uses_count += 1;
-        await voucher.save();
+  try {
+    const orderDetails = req.body;
+    let discountAmount = 0;
+    let voucherId = null;
+
+    if (orderDetails.voucher_code) {
+      const voucher = await Voucher.findOne({ voucher_code: orderDetails.voucher_code, is_active: true });
+      if (!voucher) {
+        return res.status(400).json({ message: 'Voucher is not valid' });
       }
-        const order = new Order({...orderDetails, discountAmount, voucher_id: voucherId});
+      if (voucher.min_order_amount > orderDetails.totalAmount) {
+        return res.status(400).json({
+          message: `Order does not meet minimum amount ${voucher.min_order_amount}`,
+        });
+      }
+      if (voucher.max_uses && voucher.uses_count >= voucher.max_uses) {
+        return res.status(400).json({ message: 'Voucher has reached max uses' })
+      }
+
+      if (voucher.end_date && voucher.end_date < new Date()) {
+        return res.status(400).json({ message: 'Voucher is expired' });
+      }
+      voucherId = voucher._id;
+      if (voucher.discount_type === 'percentage') {
+        discountAmount = (orderDetails.totalAmount * voucher.discount_value) / 100;
+      } else if (voucher.discount_type === 'fixed amount') {
+        discountAmount = voucher.discount_value;
+      }
+
+      voucher.uses_count += 1;
+      await voucher.save();
+    }
+     const order = new Order({...orderDetails, discountAmount, voucher_id: voucherId});
         await order.save();
 
-        // Create invoice PDF
-        const fontPath = path.join(__dirname, '../fonts/Roboto-Regular.ttf');
+    // Update inventory
+         const updatePromises = orderDetails.details.map(async (item) => {
+             console.log("Processing product:", item.productId); // Log trước khi tìm
+           try {
+             const product = await Product.findById(item.productId);
+             if (!product) {
+               console.log(`Product with id ${item.productId} not found`);
+                throw new Error(`Product with id ${item.productId} not found`);
+            }
+             console.log("Product found:", product);
+              console.log("Current inventory:", product.inventory);
+            if(product.inventory < item.quantity){
+                 throw new Error(`Insufficient stock for product ${product.name}`);
+            }
+
+             product.inventory -= item.quantity;
+             console.log("Inventory after update:", product.inventory);
+              await product.save();
+             return product;
+           }
+           catch(err){
+            console.error("Error updating inventory", err)
+           throw err
+           }
+        });
+
+       const updatedProducts = await Promise.all(updatePromises);
+
+
+    // Create invoice PDF (as before)
+     const fontPath = path.join(__dirname, '../fonts/Roboto-Regular.ttf');
         if (!fs.existsSync(fontPath)) {
             return res.status(500).json({ error: "Font file not found" });
         }
@@ -111,7 +144,8 @@ exports.createOrder = async (req, res) => {
                     ],
                 };
                  await transporter.sendMail(mailOptions);
-                 res.status(201).json({ message: 'Đơn hàng đã được tạo, email đã được gửi!', order });
+                  res.status(201).json({ message: 'Đơn hàng đã được tạo, email đã được gửi!', order, updatedProducts }); // return updated products
+
             } catch (emailError) {
                 console.error('Lỗi gửi email:', emailError);
                 res.status(500).json({ error: 'Gửi email thất bại' });
@@ -122,19 +156,19 @@ exports.createOrder = async (req, res) => {
              console.error('Lỗi ghi PDF:', err);
              return res.status(500).json({ error: 'Tạo hóa đơn PDF thất bại' });
          });
-    } catch (error) {
+  } catch (error) {
         console.error('Lỗi tạo đơn hàng:', error);
-        res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
+         res.status(500).json({ error: error.message || 'Lỗi máy chủ nội bộ' });
     }
 };
-
 
 // Lấy tất cả đơn hàng
 exports.getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find();
+        const orders = await Order.find().sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
+        console.error('Lỗi khi lấy danh sách đơn hàng:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -142,16 +176,16 @@ exports.getAllOrders = async (req, res) => {
 // Lấy đơn hàng theo ID
 exports.getOrderById = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+         const order = await Order.findById(req.params.id);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
         res.json(order);
     } catch (error) {
+         console.error(`Lỗi khi lấy đơn hàng với ID ${req.params.id}:`, error);
         res.status(500).json({ message: error.message });
     }
 };
-
 // Cập nhật đơn hàng
 exports.updateOrder = async (req, res) => {
     try {
@@ -173,20 +207,37 @@ exports.updateOrder = async (req, res) => {
         }
         res.json(order);
     } catch (error) {
+        console.error(`Lỗi khi cập nhật đơn hàng với ID ${req.params.id}:`, error);
         res.status(400).json({ message: error.message });
     }
 };
 
-// Cập nhật trạng thái
+
+// Cập nhật trạng thái đơn hàng
 exports.updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
 
     try {
-        const validStatuses = ['pending', 'shipped', 'delivered', 'cancelled'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status value' });
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
         }
+
+        const validStatusTransitions = {
+          'pending': ['processing', 'cancelled'],
+          'processing': ['shipped', 'cancelled'],
+          'shipped': ['delivered', 'cancelled'],
+          'delivered': [],
+          'cancelled': []
+        };
+
+          const allowedStatuses = validStatusTransitions[order.status];
+        
+          if (!allowedStatuses || !allowedStatuses.includes(status)) {
+              return res.status(400).json({ message: `Không thể chuyển trạng thái từ ${order.status} sang ${status}.` });
+          }
+
         const updatedOrder = await Order.findByIdAndUpdate(
             orderId,
             { status },
@@ -200,7 +251,6 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: 'Error updating order status', error });
     }
 };
-
 // Xóa đơn hàng
 exports.deleteOrder = async (req, res) => {
     try {
@@ -208,62 +258,77 @@ exports.deleteOrder = async (req, res) => {
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        res.json({ message: 'Order deleted' });
+         res.json({ message: 'Order deleted' });
     } catch (error) {
+        console.error(`Lỗi khi xóa đơn hàng với ID ${req.params.id}:`, error);
         res.status(500).json({ message: error.message });
     }
 };
+// lấy đơn hàng đã giao
 exports.getDeliveredOrders = async (req, res) => {
-    try {
-        const deliveredOrders = await Order.find({ status: 'delivered' });
-        res.json(deliveredOrders);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching delivered orders', error });
-    }
+  try {
+    const deliveredOrders = await Order.find({ status: 'delivered' });
+    res.json(deliveredOrders);
+  } catch (error) {
+      console.error('Lỗi khi lấy đơn hàng đã giao:', error);
+    res.status(500).json({ message: 'Error fetching delivered orders', error });
+  }
 };
-
+// lấy lịch sử đơn hàng
 exports.getOrderHistory = async (req, res) => {
-    try {
-        const userId  = req.params.id
-        if (!userId) {
-            return res.status(400).json({ message: "User ID is required." });
-        }
-        const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-        res.status(200).json(orders);
-    } catch (error) {
-        console.error("Error fetching order history:", error);
-        res.status(500).json({ message: "Failed to fetch order history." });
+  try {
+    const userId = req.params.id;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
     }
-}
-exports.getTotalOrders = async (req, res) => {
-    try {
-        const totalOrders = await Order.countDocuments();
-        res.json({ totalOrders });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Đã xảy ra lỗi khi tính tổng đơn hàng." });
-    }
+    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching order history:", error);
+    res.status(500).json({ message: "Failed to fetch order history." });
+  }
 };
+// lấy tổng số đơn hàng
+exports.getTotalOrders = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+    res.json({ totalOrders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi tính tổng đơn hàng." });
+  }
+};
+// lấy tổng thu nhập, tính cả discount
 exports.getTotalIncome = async (req, res) => {
     try {
         const totalIncome = await Order.aggregate([
             { $match: { status: 'delivered' } },
-            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: { $subtract: ["$totalAmount", "$discountAmount"] } }
+                }
+            }
         ]);
-        res.json({ total: totalIncome[0]?.total || 0 });
+       res.json({ total: totalIncome[0]?.total || 0 });
     } catch (error) {
+        console.error('Lỗi khi lấy tổng thu nhập:', error);
         res.status(500).json({ message: 'Error fetching total income', error });
     }
 };
+
+// lấy đơn hàng theo trạng thái
 exports.getOrdersByStatus = async (req, res) => {
-    const { status } = req.params;
-    try {
-        const orders = await Order.find({ status });
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching orders by status', error });
-    }
+  const { status } = req.params;
+  try {
+    const orders = await Order.find({ status });
+    res.json(orders);
+  } catch (error) {
+      console.error('Lỗi khi lấy đơn hàng theo trạng thái:', error);
+    res.status(500).json({ message: 'Error fetching orders by status', error });
+  }
 };
+// lấy đơn hàng theo ngày
 exports.getOrdersByDate = async (req, res) => {
   const { date } = req.params;
     try {
@@ -275,18 +340,20 @@ exports.getOrdersByDate = async (req, res) => {
          });
       res.json(orders);
     } catch (error) {
+         console.error('Lỗi khi lấy đơn hàng theo ngày:', error);
       res.status(500).json({ message: "Error fetching orders by date", error });
     }
 };
+// lấy tổng số lượng đơn hàng
 exports.getOrderCount = async (req, res) => {
-    try {
-        const count = await Order.countDocuments();
-        res.json({ count });
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching users count', error });
-    }
+  try {
+    const count = await Order.countDocuments();
+    res.json({ count });
+  } catch (error) {
+      console.error('Lỗi khi lấy số lượng đơn hàng:', error);
+    res.status(500).json({ message: 'Error fetching users count', error });
+  }
 };
-
 exports.getOrderIncomes = async (req, res) => {
     try {
         const { year, month } = req.query;
@@ -321,4 +388,5 @@ exports.getOrderIncomes = async (req, res) => {
         console.error('Error fetching income statistics:', error); // In ra lỗi chi tiết
         res.status(500).json({ message: 'Error fetching income statistics', error });
     }
+    
 };

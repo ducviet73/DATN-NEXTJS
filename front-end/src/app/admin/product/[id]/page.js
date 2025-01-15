@@ -25,18 +25,19 @@ const fetcher = async (url) => {
 // Validation schema with Yup
 const validationSchema = Yup.object({
     name: Yup.string()
-        .matches(/^[A-Z][a-z]*(?:[\s.,!?'-][A-Z][a-z]*)*$/, 'Tên phải bắt đầu bằng chữ cái viết hoa sau mỗi khoảng trắng và có thể chứa dấu câu')
         .required('Tên là bắt buộc'),
     category: Yup.string()
         .required('Danh mục là bắt buộc'),
     description: Yup.string()
-        .matches(/^[\w\s.,!?]+$/, 'Mô tả chỉ có thể chứa chữ cái, số và dấu câu thông thường'),
+        // .matches(/^[\w\s.,!?]+$/, 'Mô tả chỉ có thể chứa chữ cái, số và dấu câu thông thường')
+        ,
     price: Yup.number()
         .min(0, 'Giá phải ít nhất là 0')
         .required('Giá là bắt buộc')
         .typeError('Giá phải là số'),
     content: Yup.string()
-        .matches(/^[\w\s.,!?]+$/, 'Nội dung chỉ có thể chứa chữ cái, số và dấu câu thông thường'),
+        // .matches(/^[\w\s.,!?]+$/, 'Nội dung chỉ có thể chứa chữ cái, số và dấu câu thông thường'),
+        ,
     view: Yup.number()
         .min(0, 'Số lượt xem phải ít nhất là 0')
         .typeError('Số lượt xem phải là số'),
@@ -72,11 +73,12 @@ export default function ProductEdit({ params }) {
             view: product ? product.view : '',
             inventory: product ? product.inventory : '',
             rating: product ? product.rating : '',
-            image: null,
-            images: [],
+            image: null, // Giá trị khởi tạo cho file ảnh chính
+            images: [], // Giá trị khởi tạo cho các file ảnh phụ
         },
         validationSchema,
         onSubmit: async (values, { resetForm }) => {
+             console.log("Submit button clicked");
             const data = new FormData();
 
             // Add non-file fields to FormData
@@ -86,19 +88,18 @@ export default function ProductEdit({ params }) {
                 }
             });
 
-            // Add single file
+            // Add single file (image)
             if (values.image) {
                 data.append('image', values.image);
             }
 
-            // Add multiple files
+            // Add multiple files (images)
             values.images.forEach(file => {
                 data.append('images', file);
             });
 
             console.log('FormData to be sent:', data);
             console.log("Fetching product with ID:", productId);
-
 
             try {
                 const response = await fetch(`http://localhost:3000/products/${productId}`, {
@@ -146,6 +147,17 @@ export default function ProductEdit({ params }) {
             <i className="far fa-long-arrow-left"></i> Quay lại
         </Link>
     </div>
+        {/* Kiểm tra lỗi validation của form */}
+    {Object.keys(formik.errors).length > 0 && (
+        <div className="alert alert-danger">
+            Vui lòng kiểm tra các lỗi sau:
+            <ul>
+                {Object.keys(formik.errors).map(key => (
+                   <li key={key}>{formik.errors[key]}</li>
+                 ))}
+            </ul>
+        </div>
+    )}
     <form className="row" onSubmit={formik.handleSubmit} encType="multipart/form-data">
         {/* Phần thông tin cơ bản */}
         <div className="col-md-8 mb-4">
@@ -276,16 +288,25 @@ export default function ProductEdit({ params }) {
             <div className="card rounded-0 border-0 shadow-sm">
                 <div className="card-body">
                     <h6 className="pb-3 border-bottom">Hình ảnh</h6>
-                    <label className="form-label">Ảnh sản phẩm cũ</label>
-                    <img src={`http://localhost:3000/img/${product.image}`} className="w-50" alt="Sản phẩm hiện tại" />
+                      <label className="form-label">Ảnh sản phẩm cũ</label>
+                      <div className="mb-3 text-center">
+                       {product.image ? (
+                         <img src={product.image} className="w-50" alt="Sản phẩm hiện tại" />
+                         ) : (
+                            <p>Không có ảnh sản phẩm cũ</p>
+                        )}
+                      </div>
+                  
                     <div className="mb-3">
-                        <label htmlFor="image" className="form-label">Ảnh sản phẩm *</label>
+                        <label htmlFor="image" className="form-label">Ảnh sản phẩm </label>
                         <input
-                            className="form-control rounded-0"
-                            type="file"
-                            id="image"
-                            onChange={(e) => formik.setFieldValue('image', e.target.files[0])}
+                             className="form-control rounded-0"
+                             type="file"
+                             id="image"
+                             accept="image/*" // Chỉ cho phép chọn file ảnh
+                             onChange={(e) => formik.setFieldValue('image', e.target.files[0])}
                         />
+                        {/* Phần preview ảnh mới nếu có */}
                         <div className="bg-secondary-subtle mb-3 p-2 text-center">
                             {formik.values.image ? (
                                 <>
@@ -296,12 +317,6 @@ export default function ProductEdit({ params }) {
                                         alt="Ảnh đã chọn"
                                     />
                                 </>
-                            ) : product.image ? (
-                                <img
-                                    src={`http://localhost:3000/img/${product.image}`}
-                                    className="w-50"
-                                    alt="Sản phẩm hiện tại"
-                                />
                             ) : null}
                         </div>
                     </div>
@@ -312,24 +327,25 @@ export default function ProductEdit({ params }) {
                             type="file"
                             id="images"
                             multiple
+                            accept="image/*" // Chỉ cho phép chọn file ảnh
                             onChange={(e) => formik.setFieldValue('images', Array.from(e.target.files))}
                         />
-                        <div className="bg-secondary-subtle mb-3 p-2 text-center d-flex">
-                            {formik.values.images && Array.isArray(formik.values.images) ? (
+                           <div className="bg-secondary-subtle mb-3 p-2 text-center d-flex flex-wrap">
+                             {formik.values.images && Array.isArray(formik.values.images) ? (
                                 formik.values.images.map((img, index) => (
                                     <img
                                         key={index}
                                         src={URL.createObjectURL(img)}
-                                        className="w-25"
+                                        className="w-25 m-1"
                                         alt={`Ảnh đã chọn ${index}`}
                                     />
                                 ))
-                            ) : product.images && Array.isArray(product.images) ? (
+                             ) : product.images && Array.isArray(product.images) ? (
                                 product.images.map((img, index) => (
                                     <img
                                         key={index}
                                         src={img}
-                                        className="w-25"
+                                       className="w-25 m-1"
                                         alt={`Sản phẩm hiện tại ${index}`}
                                     />
                                 ))

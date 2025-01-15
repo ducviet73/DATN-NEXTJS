@@ -112,7 +112,7 @@ export default function Product() {
             </thead>
             <tbody className="align-middle">
               {productData?.result?.map(product => {
-                const { _id, name, image, price, sale, rating, inventory } = product;
+                const { _id, name, image, price, sale, rating, inventory, category } = product;
                 const discountedPrice = ((price * (100 - sale)) / 100).toLocaleString('vi-VN', {
                   style: 'currency',
                   currency: 'VND',
@@ -127,24 +127,24 @@ export default function Product() {
 
                 return (
                   <tr key={_id}>
-                    <td style={{ width: "64px" }}>
-                      <img
-                        src={`http://localhost:3000/${image}?t=${new Date().getTime()}`}
-                        alt={name}
-                        className="img-thumbnail"
-                      />
-                    </td>
+          <td style={{ width: "64px" }}>
+            <img
+              src={image ? `${image}?t=${new Date().getTime()}` : ""}
+              alt={name}
+              className="img-thumbnail"
+            />
+          </td>
                     <td className="text-start">
                       <strong>{name}</strong>
                       <br />
                       <small>
                         Id: <strong>{_id}</strong> |
-                        Danh mục: <a href="#" className="text-decoration-none fw-bold">NIKE</a>
+                        Danh mục: <a href="#" className="text-decoration-none fw-bold">{category?.name || 'N/A'}</a>
                       </small>
                     </td>
                     <td>
                       {discountedPrice}
-                      <br /><del>{originalPrice}</del>
+                      {/* <br /><del>{originalPrice}</del> */}
                     </td>
                     <td>{inventory}</td>
                     <td>

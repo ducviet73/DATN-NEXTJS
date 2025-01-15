@@ -1,9 +1,4 @@
 {
-  "/(users)/orders/page": "app/(users)/orders/page.js",
-  "/admin/product/page": "app/admin/product/page.js",
-  "/(users)/checkout/page": "app/(users)/checkout/page.js",
   "/admin/product/[id]/page": "app/admin/product/[id]/page.js",
-  "/admin/order/page": "app/admin/order/page.js",
-  "/(users)/cart/page": "app/(users)/cart/page.js",
-  "/(users)/page": "app/(users)/page.js"
+  "/admin/product/page": "app/admin/product/page.js"
 }

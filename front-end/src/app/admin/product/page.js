@@ -145,13 +145,13 @@ export default function Product() {
 
                 return (
                   <tr key={_id}>
-          <td style={{ width: "64px" }}>
-            <img
-              src={image ? `http://localhost:3000/img/${image}?t=${new Date().getTime()}` : ""}
-              alt={name}
-              className="img-thumbnail"
-            />
-          </td>
+  <td style={{ width: "64px" }}>
+    <img
+      src= {image}
+      alt={name}
+      className="img-thumbnail"
+    />
+  </td>
                     <td className="text-start">
                       <strong>{name}</strong>
                       <br />

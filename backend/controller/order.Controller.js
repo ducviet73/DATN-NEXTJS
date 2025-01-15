@@ -225,9 +225,8 @@ exports.updateOrderStatus = async (req, res) => {
         }
 
         const validStatusTransitions = {
-          'pending': ['processing', 'cancelled'],
-          'processing': ['shipped', 'cancelled'],
-          'shipped': ['delivered', 'cancelled'],
+          'pending': ['processing','shipped', 'cancelled','delivered'],
+          'shipped': ['shipped','delivered', 'cancelled'],
           'delivered': [],
           'cancelled': []
         };

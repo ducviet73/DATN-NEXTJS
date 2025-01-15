@@ -1,0 +1,240 @@
+/*!***************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[3]!./public/bootstrap/css/cart.css ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************/
+h3 {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.thongtin-sp {
+    border-top: 1px solid #E6E6E6;
+    border-bottom: 1px solid #E6E6E6;
+}
+
+.thongtin-all {
+    display: flex;
+    list-style: none;
+    margin-top: 10px;
+}
+
+.thongtin-all>li {
+    margin-left: 126px;
+}
+
+.thanhtoan-all {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    justify-content: space-between;
+}
+
+.thanhtoan-1>img {
+    margin-left: 0px;
+    width: 110px;
+    height: 120px;
+}
+
+.thanhtoan-2 {
+    width: 225px;
+    margin-left: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.size-th {
+    font-size: 13px;
+}
+
+.ten-sp {
+    font-size: 19px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.thanhtoan-3 {
+    width: 184px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 25px;
+}
+
+.thanhtoan-4 {
+    width: 194px;
+}
+
+.thanhtoan-4-1>input {
+    width: 100px;
+    height: 35px;
+    border-radius: 3px;
+    margin-top: 15px;
+    padding-left: 10px;
+    border: 1px solid #eaeaea;
+}
+
+.thanhtoan-5 {
+    width: 195px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 25px;
+}
+
+.thanhtoan-6 {
+    margin-top: 25px;
+}
+
+.thanhtoan-6>a {
+    text-decoration: none;
+    color: #000000;
+}
+
+form {
+    border-bottom: 1px solid #E6E6E6;
+}
+
+table {
+    margin-bottom: 20px;
+}
+
+.ghichu-1>textarea {
+    padding: 10px;
+    border: 1px solid #E6E6E6;
+    outline: none;
+    border-radius: 3px;
+}
+
+.ghichu-all {
+    margin-top: 30px;
+}
+
+.ghichu {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tong {
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.thanhtoan-btn {
+    display: flex;
+    gap: 10px;
+}
+
+.thanhtoan-btn>button {
+    height: 40px;
+}
+
+.thanhtoan-btn-1 {
+    text-transform: uppercase;
+    width: 200px;
+    border: none;
+    /* border: 1px solid rgb(44, 44, 195); */
+    border-radius: 3px;
+    transition: all .8s ease;
+}
+
+.thanhtoan-btn-1:hover {
+    box-shadow: 1px 1px 10px 0 #555;
+    background-color: rgb(44, 44, 195);
+    color: #fff;
+}
+
+.thanhtoan-btn-2 {
+    text-transform: uppercase;
+    background-color: #000000;
+    color: #fff;
+    width: 220px;
+    border: none;
+    /* border: 1px solid #E6E6E6; */
+    border-radius: 3px;
+    transition: all .8s ease;
+}
+
+.thanhtoan-btn-2:hover {
+    box-shadow: 1px 1px 10px 0 #555;
+    background-color: #E34444;
+    color: #fff;
+}
+
+.tieptuc>a {
+    transition: all .8s ease;
+    text-decoration: none;
+    color: #222;
+}
+
+.tieptuc>a>p>i {
+    padding-right: 5px;
+}
+
+.tieptuc {
+    color: #222;
+}
+
+.tieptuc>a:hover {
+    color: #E34444;
+}
+
+.footer {
+    margin-top: 40px;
+    background-color: #000000;
+}
+
+.container-footer {
+    width: 100%;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+}
+
+h4 {
+    font-size: 19px;
+    text-transform: uppercase;
+    padding-bottom: 17px;
+}
+
+.thongtin {
+    margin-top: 20px;
+}
+
+.thongtin>ul>li {
+    list-style: none;
+    font-size: 14px;
+padding-bottom: 10px;
+}
+
+.gioithieu {
+    margin-top: 20px;
+}
+
+.gioithieu>ul>li {
+    list-style: none;
+    font-size: 14px;
+    padding-bottom: 10px;
+}
+
+.huongdan {
+    margin-top: 20px;
+}
+
+.huongdan>ul>li {
+    list-style: none;
+    font-size: 14px;
+    padding-bottom: 10px;
+}
+
+.thanhtoan {
+    margin-top: 20px;
+}
+
+.thanhtoan>ul>li {
+    list-style: none;
+    padding-bottom: 10px;
+}
+
+.thanhtoan-img {
+    width: 150px;
+}

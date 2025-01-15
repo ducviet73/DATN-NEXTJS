@@ -9,6 +9,8 @@ const fetcher = (...args) => fetch(...args).then((res) => res.json());
 export default function Product() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [lowStockCount, setLowStockCount] = useState(0); // Thêm state cho số lượng sản phẩm sắp hết hàng
+
 
   // Lấy dữ liệu sản phẩm theo trang hiện tại
   const { data: productData, error, isLoading } = useSWR(
@@ -42,11 +44,15 @@ export default function Product() {
     }
   };
 
-  // Cập nhật totalPages và currentPage dựa trên dữ liệu đã lấy
+  // Cập nhật totalPages, currentPage và số lượng sản phẩm sắp hết hàng dựa trên dữ liệu đã lấy
   useEffect(() => {
     if (productData) {
       setTotalPages(productData.countPages);
       setCurrentPage(productData.currentPage);
+
+      // Tính toán số lượng sản phẩm có tồn kho dưới 5
+      const lowStock = productData.result.filter(product => product.inventory < 5).length;
+      setLowStockCount(lowStock);
     }
   }, [productData]);
 
@@ -85,7 +91,7 @@ export default function Product() {
       </div>
 
       <div className="row">
-        <div className="col-md-3 mb-4">
+      <div className="col-md-3 mb-4">
           <div className="card border-0 rounded-0 bg-primary-subtle text-primary">
             <div className="card-body text-end">
               <div className="display-6 d-flex justify-content-between">
@@ -93,6 +99,18 @@ export default function Product() {
                 {productData?.countPro || 0}
               </div>
               SẢN PHẨM
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-3 mb-4">
+          <div className="card border-0 rounded-0 bg-warning text-dark">
+            <div className="card-body text-end">
+              <div className="display-6 d-flex justify-content-between">
+              <i className="fal fa-exclamation-circle"></i>
+                {lowStockCount}
+              </div>
+              SẢN PHẨM SẮP HẾT HÀNG
             </div>
           </div>
         </div>
@@ -129,7 +147,7 @@ export default function Product() {
                   <tr key={_id}>
           <td style={{ width: "64px" }}>
             <img
-              src={image ? `${image}?t=${new Date().getTime()}` : ""}
+              src={image ? `http://localhost:3000/img/${image}?t=${new Date().getTime()}` : ""}
               alt={name}
               className="img-thumbnail"
             />
@@ -144,7 +162,6 @@ export default function Product() {
                     </td>
                     <td>
                       {discountedPrice}
-                      {/* <br /><del>{originalPrice}</del> */}
                     </td>
                     <td>{inventory}</td>
                     <td>
